@@ -49,8 +49,7 @@ app/src/main/java/dev/hyuwah/composelab/
     │   ├── ExperimentScaffold.kt    shared top bar + description chrome
     │   └── ExperimentRegistry.kt    the one central list
     ├── playground/
-    │   ├── button/ButtonExperiment.kt
-    │   └── toggle/ToggleExperiment.kt
+    │   └── button/ButtonExperiment.kt
     └── theme/                   Material 3 theme
 ```
 
@@ -79,6 +78,52 @@ Navigation is back-stack-as-state: `rememberNavBackStack(Home)` returns a `Mutab
 That's the whole wiring — the nav host already has a single `entry<Experiment>` branch and the list
 screen renders whatever the registry exposes.
 
+
+## Animation article material
+
+Two dev.to articles are written against this repo. Prose lives outside the repo; each chapter here is
+one file that compiles, previews and teaches exactly one idea. Every chapter exposes its tuning numbers
+as named constants (feel is the reader's call) and every catalog has a freeze + scrub control so a
+single animation frame can be inspected.
+
+### Article 1 — Button beyond Material
+
+| Chapter | File | Compose APIs |
+|---|---|---|
+| 1. Bounce | [`ui/playground/button/BounceChapter.kt`](app/src/main/java/dev/hyuwah/composelab/ui/playground/button/BounceChapter.kt) | `animateFloatAsState`, `collectIsPressedAsState`, `Modifier.graphicsLayer` |
+| 2. Interruption | [`ui/playground/button/InterruptionChapter.kt`](app/src/main/java/dev/hyuwah/composelab/ui/playground/button/InterruptionChapter.kt) | `Animatable`, `animateTo`, `spring(initialVelocity = …)`, `pointerInput` + `detectTapGestures` |
+| 3. Morph | [`ui/playground/button/MorphChapter.kt`](app/src/main/java/dev/hyuwah/composelab/ui/playground/button/MorphChapter.kt) | `Animatable<Float>`, `lerp`, `RoundedCornerShape`, `AnimatedContent` + `SizeTransform` |
+| 4. Polish | [`ui/playground/button/PolishChapter.kt`](app/src/main/java/dev/hyuwah/composelab/ui/playground/button/PolishChapter.kt) | `semantics { stateDescription }`, `liveRegion`, `indication`, `clickable` + `clip` |
+| Catalog | [`ui/playground/button/ButtonExperiment.kt`](app/src/main/java/dev/hyuwah/composelab/ui/playground/button/ButtonExperiment.kt) | renders chapters 1–4 in order |
+
+Shared primitives (container, `ActionState`, `ActionRunner`, `ScrubRow`) live in
+[`ButtonBase.kt`](app/src/main/java/dev/hyuwah/composelab/ui/playground/button/ButtonBase.kt).
+
+### Article 2 — Speak button case study
+
+| Chapter | File | Compose APIs |
+|---|---|---|
+| 1. Glow | [`ui/casestudy/speak/GlowLayer.kt`](app/src/main/java/dev/hyuwah/composelab/ui/casestudy/speak/GlowLayer.kt) | `Canvas`, `Brush.radialGradient`, `BlendMode.Plus` |
+| 2. Fake amplitude | [`ui/casestudy/speak/Amplitude.kt`](app/src/main/java/dev/hyuwah/composelab/ui/casestudy/speak/Amplitude.kt) | `State<Float>`, `withFrameNanos`, deterministic sine + value noise |
+| 3. CTA morph | [`ui/casestudy/speak/CtaMorph.kt`](app/src/main/java/dev/hyuwah/composelab/ui/casestudy/speak/CtaMorph.kt) | reuses `ActionState` + `rememberMorphVisuals`, `detectTapGestures` press/release |
+| 4. Composition | [`ui/casestudy/speak/SpeakScreen.kt`](app/src/main/java/dev/hyuwah/composelab/ui/casestudy/speak/SpeakScreen.kt) | glow + amplitude + CTA wired together, freeze + amplitude scrub |
+
+No microphone anywhere: `android.media.*` and `RECORD_AUDIO` are not used, the amplitude is generated.
+
+### Tests
+
+Value tests, not appearance tests — they pin what a progress value turns into:
+
+```bash
+./gradlew :app:testDebugUnitTest --tests 'dev.hyuwah.composelab.playground.*' \
+                                 --tests 'dev.hyuwah.composelab.casestudy.*'
+```
+
+| Test | File | Pins |
+|---|---|---|
+| `BounceMotionTest` | `test/.../playground/BounceMotionTest.kt` | scale/lift at progress 0, 0.5, 1 |
+| `MorphMotionTest` | `test/.../playground/MorphMotionTest.kt` | corner + color lerp at t 0, 0.5, 1 |
+| `FakeAmplitudeTest` | `test/.../casestudy/FakeAmplitudeTest.kt` | determinism for a fixed seed, 0..1 range, repeat period |
 
 ## License
 
